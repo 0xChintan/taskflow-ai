@@ -5,7 +5,9 @@ import { redirect } from "next/navigation";
 import { Prisma, TaskStatus } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { logActivity } from "@/lib/activity";
 import { requireProjectAccess, verifySession } from "@/lib/dal";
+import { createNotifications } from "@/lib/notifications";
 import { getOrderBetween } from "@/lib/order";
 import {
   TaskCreateSchema,
@@ -31,6 +33,14 @@ async function nextOrderForColumn(projectId: string, status: TaskStatus) {
   return (last?.order ?? 0) + 1000;
 }
 
+async function getActorName(userId: string) {
+  const u = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { name: true },
+  });
+  return u?.name ?? "Someone";
+}
+
 export async function createTask(
   projectId: string,
   _prev: TaskFormState,
@@ -53,15 +63,18 @@ export async function createTask(
         nextTaskNumber(projectId),
         nextOrderForColumn(projectId, status),
       ]);
-      await prisma.task.create({
-        data: {
-          title,
-          status,
-          order,
-          number,
-          projectId,
-          creatorId: userId,
-        },
+      const task = await prisma.task.create({
+        data: { title, status, order, number, projectId, creatorId: userId },
+        select: { id: true, title: true, number: true },
+      });
+      await logActivity({
+        action: "task.created",
+        entityType: "task",
+        entityId: task.id,
+        meta: { title: task.title, number: task.number },
+        userId,
+        projectId,
+        taskId: task.id,
       });
       revalidatePath(`/projects/${projectId}`);
       return { ok: true };
@@ -84,9 +97,19 @@ export async function updateTask(
   _prev: TaskFormState,
   formData: FormData,
 ): Promise<TaskFormState> {
+  const { userId } = await verifySession();
   const existing = await prisma.task.findUnique({
     where: { id: taskId },
-    select: { id: true, projectId: true, status: true },
+    select: {
+      id: true,
+      projectId: true,
+      title: true,
+      description: true,
+      status: true,
+      priority: true,
+      assigneeId: true,
+      assignee: { select: { name: true } },
+    },
   });
   if (!existing) return { errors: { form: ["Task not found."] } };
   await requireProjectAccess(existing.projectId);
@@ -103,8 +126,8 @@ export async function updateTask(
   if (!parsed.success) return { errors: z.flattenError(parsed.error).fieldErrors };
 
   const { title, description, status, priority, assigneeId, storyPoints, dueDate } = parsed.data;
+  const newAssigneeId = assigneeId || null;
 
-  // If column changed, drop to bottom of new column
   let order: number | undefined;
   if (status !== existing.status) {
     order = await nextOrderForColumn(existing.projectId, status);
@@ -113,7 +136,7 @@ export async function updateTask(
   const completedAt =
     status === TaskStatus.DONE && existing.status !== TaskStatus.DONE
       ? new Date()
-      : status !== TaskStatus.DONE
+      : status !== TaskStatus.DONE && existing.status === TaskStatus.DONE
         ? null
         : undefined;
 
@@ -121,16 +144,91 @@ export async function updateTask(
     where: { id: taskId },
     data: {
       title,
-      description,
+      description: description ?? null,
       status,
       priority,
-      assigneeId: assigneeId || null,
+      assigneeId: newAssigneeId,
       storyPoints: storyPoints ?? null,
       dueDate: dueDate ?? null,
       ...(order !== undefined ? { order } : {}),
       ...(completedAt !== undefined ? { completedAt } : {}),
     },
   });
+
+  // Log changes
+  if (status !== existing.status) {
+    await logActivity({
+      action: "task.status_changed",
+      entityType: "task",
+      entityId: taskId,
+      meta: { from: existing.status, to: status },
+      userId,
+      projectId: existing.projectId,
+      taskId,
+    });
+  }
+  if (priority !== existing.priority) {
+    await logActivity({
+      action: "task.priority_changed",
+      entityType: "task",
+      entityId: taskId,
+      meta: { from: existing.priority, to: priority },
+      userId,
+      projectId: existing.projectId,
+      taskId,
+    });
+  }
+  if (newAssigneeId !== existing.assigneeId) {
+    let toName: string | null = null;
+    if (newAssigneeId) {
+      const u = await prisma.user.findUnique({
+        where: { id: newAssigneeId },
+        select: { name: true },
+      });
+      toName = u?.name ?? null;
+    }
+    await logActivity({
+      action: "task.assignee_changed",
+      entityType: "task",
+      entityId: taskId,
+      meta: {
+        from: existing.assignee?.name ?? null,
+        to: toName,
+      },
+      userId,
+      projectId: existing.projectId,
+      taskId,
+    });
+
+    if (newAssigneeId && newAssigneeId !== userId) {
+      const actor = await getActorName(userId);
+      await createNotifications([
+        {
+          userId: newAssigneeId,
+          type: "task.assigned",
+          title: `${actor} assigned a task to you`,
+          body: title,
+          linkUrl: `/projects/${existing.projectId}/tasks/${taskId}`,
+        },
+      ]);
+    }
+  }
+  if (title !== existing.title || (description ?? null) !== existing.description) {
+    await logActivity({
+      action: "task.edited",
+      entityType: "task",
+      entityId: taskId,
+      meta: {
+        fields: [
+          ...(title !== existing.title ? ["title"] : []),
+          ...((description ?? null) !== existing.description ? ["description"] : []),
+        ],
+      },
+      userId,
+      projectId: existing.projectId,
+      taskId,
+    });
+  }
 
   revalidatePath(`/projects/${existing.projectId}`);
   revalidatePath(`/projects/${existing.projectId}/tasks/${taskId}`);
@@ -143,6 +241,7 @@ export async function moveTask(args: {
   beforeOrder: number | null;
   afterOrder: number | null;
 }) {
+  const { userId } = await verifySession();
   const { taskId, status, beforeOrder, afterOrder } = args;
 
   const existing = await prisma.task.findUnique({
@@ -169,18 +268,40 @@ export async function moveTask(args: {
     },
   });
 
+  if (status !== existing.status) {
+    await logActivity({
+      action: "task.status_changed",
+      entityType: "task",
+      entityId: taskId,
+      meta: { from: existing.status, to: status },
+      userId,
+      projectId: existing.projectId,
+      taskId,
+    });
+  }
+
   revalidatePath(`/projects/${existing.projectId}`);
 }
 
 export async function deleteTask(taskId: string) {
+  const { userId } = await verifySession();
   const existing = await prisma.task.findUnique({
     where: { id: taskId },
-    select: { id: true, projectId: true },
+    select: { id: true, projectId: true, title: true, number: true },
   });
   if (!existing) throw new Error("Not found");
   await requireProjectAccess(existing.projectId);
 
   await prisma.task.delete({ where: { id: taskId } });
+  await logActivity({
+    action: "task.deleted",
+    entityType: "task",
+    entityId: existing.id,
+    meta: { title: existing.title, number: existing.number },
+    userId,
+    projectId: existing.projectId,
+    taskId: null,
+  });
   revalidatePath(`/projects/${existing.projectId}`);
   redirect(`/projects/${existing.projectId}`);
 }

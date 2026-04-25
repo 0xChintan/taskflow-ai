@@ -2,6 +2,7 @@ import Link from "next/link";
 import { logout } from "@/app/lib/actions/auth";
 import { getActiveOrg, getCurrentUser, getOrgsForUser } from "@/lib/dal";
 import { OrgSwitcher } from "./_components/org-switcher";
+import { NotificationBell } from "./_components/notification-bell";
 
 export default async function AppLayout({
   children,
@@ -28,7 +29,8 @@ export default async function AppLayout({
               orgs={orgs.map((o) => ({ id: o.id, name: o.name }))}
             />
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <NotificationBell />
             <span className="text-sm text-muted-foreground">{user?.email}</span>
             <form action={logout}>
               <button

@@ -92,6 +92,22 @@ export const TaskUpdateSchema = z.object({
     }),
 });
 
+export const CommentSchema = z.object({
+  body: z.string().min(1, { message: "Comment can't be empty." }).max(10_000).trim(),
+});
+
+export type CommentFormState =
+  | { errors?: { body?: string[]; form?: string[] }; ok?: boolean }
+  | undefined;
+
+export const TaskFiltersSchema = z.object({
+  q: z.string().trim().optional(),
+  assignee: z.string().trim().optional(),
+  priority: z.enum(Priority).optional(),
+});
+
+export type TaskFilters = z.infer<typeof TaskFiltersSchema>;
+
 export type TaskFormState =
   | {
       errors?: {

@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { requireProjectAccess } from "@/lib/dal";
+import { requireProjectAccess, verifySession } from "@/lib/dal";
 import { EditTaskForm } from "./edit-task-form";
 import { DeleteTaskButton } from "./delete-task-button";
+import { ActivityFeed } from "./_components/activity-feed";
 
 export default async function TaskDetailPage({
   params,
@@ -11,6 +12,7 @@ export default async function TaskDetailPage({
   params: Promise<{ id: string; taskId: string }>;
 }) {
   const { id: projectId, taskId } = await params;
+  const { userId } = await verifySession();
 
   let project;
   try {
@@ -75,6 +77,8 @@ export default async function TaskDetailPage({
           dueDate: task.dueDate ? task.dueDate.toISOString().slice(0, 10) : "",
         }}
       />
+
+      <ActivityFeed taskId={task.id} currentUserId={userId} />
 
       <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
         <h2 className="text-sm font-medium text-destructive">Danger zone</h2>

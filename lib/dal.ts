@@ -75,6 +75,13 @@ export async function requireOrgRole(orgId: string, ...allowed: Role[]) {
   return member.role;
 }
 
+export const getUnreadNotificationCount = cache(async () => {
+  const { userId } = await verifySession();
+  return prisma.notification.count({
+    where: { userId, isRead: false },
+  });
+});
+
 export async function requireProjectAccess(projectId: string) {
   const { userId } = await verifySession();
   const project = await prisma.project.findUnique({
