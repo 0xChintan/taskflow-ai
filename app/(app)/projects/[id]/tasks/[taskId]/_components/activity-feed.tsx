@@ -62,7 +62,7 @@ export async function ActivityFeed({
         body: true,
         createdAt: true,
         editedAt: true,
-        user: { select: { id: true, name: true } },
+        user: { select: { id: true, name: true, avatarUrl: true } },
         attachments: {
           select: {
             id: true,
@@ -98,6 +98,7 @@ export async function ActivityFeed({
         body: c.body,
         authorName: c.user.name,
         authorId: c.user.id,
+        authorAvatarUrl: c.user.avatarUrl,
         createdAt: c.createdAt,
         editedAt: c.editedAt,
         attachments: c.attachments,

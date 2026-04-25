@@ -4,6 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import { deleteComment, updateComment } from "@/app/lib/actions/comments";
 import { AttachmentList, type AttachmentData } from "./attachment-list";
 import { ConfirmDeleteDialog } from "@/app/(app)/_components/confirm-delete-dialog";
+import { Avatar } from "@/app/(app)/_components/avatar";
 
 const EDIT_WINDOW_MS = 15 * 60 * 1000;
 
@@ -12,6 +13,7 @@ export type CommentItemData = {
   body: string;
   authorName: string;
   authorId: string;
+  authorAvatarUrl: string | null;
   createdAt: Date;
   editedAt: Date | null;
   attachments: AttachmentData[];
@@ -70,9 +72,14 @@ export function CommentItem({
   return (
     <div className="flex gap-3">
       <div className="shrink-0 mt-0.5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-subtle border border-border text-xs font-medium">
-          {comment.authorName.slice(0, 1).toUpperCase()}
-        </div>
+        <Avatar
+          user={{
+            id: comment.authorId,
+            name: comment.authorName,
+            avatarUrl: comment.authorAvatarUrl,
+          }}
+          size={32}
+        />
       </div>
       <div className="flex-1 min-w-0 rounded-xl border border-border bg-background p-3 shadow-xs">
         <div className="flex items-baseline justify-between gap-2">

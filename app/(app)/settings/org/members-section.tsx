@@ -8,11 +8,12 @@ import {
   removeMember,
 } from "@/app/lib/actions/orgs";
 import { ConfirmDeleteDialog } from "@/app/(app)/_components/confirm-delete-dialog";
+import { Avatar } from "@/app/(app)/_components/avatar";
 
 type Member = {
   id: string;
   role: Role;
-  user: { id: string; name: string; email: string };
+  user: { id: string; name: string; email: string; avatarUrl: string | null };
 };
 
 const ROLE_LABEL: Record<Role, string> = {
@@ -41,14 +42,17 @@ export function MembersSection({
       <ul className="rounded-md border border-border divide-y divide-border">
         {members.map((m) => (
           <li key={m.id} className="flex items-center justify-between gap-3 px-4 py-3">
-            <div className="min-w-0">
-              <div className="text-sm font-medium truncate">
-                {m.user.name}
-                {m.user.id === currentUserId && (
-                  <span className="ml-2 text-xs text-muted-foreground">(you)</span>
-                )}
+            <div className="flex items-center gap-3 min-w-0">
+              <Avatar user={m.user} size={36} />
+              <div className="min-w-0">
+                <div className="text-sm font-medium truncate">
+                  {m.user.name}
+                  {m.user.id === currentUserId && (
+                    <span className="ml-2 text-xs text-muted-foreground">(you)</span>
+                  )}
+                </div>
+                <div className="text-xs text-muted-foreground truncate">{m.user.email}</div>
               </div>
-              <div className="text-xs text-muted-foreground truncate">{m.user.email}</div>
             </div>
             <div className="flex items-center gap-3 shrink-0">
               {canChangeRoles && m.user.id !== currentUserId ? (

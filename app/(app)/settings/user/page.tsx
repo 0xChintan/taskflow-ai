@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { verifySession } from "@/lib/dal";
+import { Avatar } from "@/app/(app)/_components/avatar";
 import { ProfileForm } from "./profile-form";
 import { PasswordForm } from "./password-form";
 
@@ -10,6 +11,7 @@ export default async function UserSettingsPage() {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
+      id: true,
       email: true,
       name: true,
       avatarUrl: true,
@@ -38,18 +40,7 @@ export default async function UserSettingsPage() {
           Back to projects
         </Link>
         <div className="mt-3 flex items-center gap-3">
-          {user.avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={user.avatarUrl}
-              alt={user.name}
-              className="h-12 w-12 rounded-full object-cover border border-border"
-            />
-          ) : (
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-subtle border border-border text-base font-medium">
-              {user.name.slice(0, 1).toUpperCase()}
-            </div>
-          )}
+          <Avatar user={user} size={48} />
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">{user.name}</h1>
             <p className="text-sm text-muted-foreground mt-0.5">{user.email}</p>

@@ -7,6 +7,7 @@ import {
   PRIORITY_LABEL,
   STATUS_COLUMNS,
 } from "@/app/(app)/projects/[id]/_components/labels";
+import { AssigneeSelect } from "@/app/(app)/_components/assignee-select";
 import { GenerateDescriptionButton } from "./_components/generate-description-button";
 
 const inputCls =
@@ -19,7 +20,7 @@ export function EditTaskForm({
   initial,
 }: {
   taskId: string;
-  members: { id: string; name: string; email: string }[];
+  members: { id: string; name: string; email: string; avatarUrl: string | null }[];
   sprints: { id: string; name: string; isActive: boolean }[];
   initial: {
     title: string;
@@ -85,14 +86,11 @@ export function EditTaskForm({
         </Field>
 
         <Field label="Assignee" error={state?.errors?.assigneeId?.[0]}>
-          <select name="assigneeId" defaultValue={initial.assigneeId} className={inputCls}>
-            <option value="">Unassigned</option>
-            {members.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </select>
+          <AssigneeSelect
+            name="assigneeId"
+            defaultValue={initial.assigneeId}
+            options={members}
+          />
         </Field>
 
         <Field label="Sprint">

@@ -68,7 +68,7 @@ export default async function ProjectPage({
         status: true,
         priority: true,
         order: true,
-        assignee: { select: { id: true, name: true } },
+        assignee: { select: { id: true, name: true, avatarUrl: true } },
         sprint: { select: { name: true, isActive: true } },
       },
       orderBy: [{ status: "asc" }, { order: "asc" }],

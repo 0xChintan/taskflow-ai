@@ -19,7 +19,7 @@ export default async function OrgMembersPage() {
     select: {
       id: true,
       role: true,
-      user: { select: { id: true, name: true, email: true } },
+      user: { select: { id: true, name: true, email: true, avatarUrl: true } },
     },
     orderBy: [{ role: "asc" }, { user: { name: "asc" } }],
   });

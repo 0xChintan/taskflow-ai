@@ -36,7 +36,11 @@ export default async function TaskEditPage({
   const [members, sprints] = await Promise.all([
     prisma.orgMember.findMany({
       where: { orgId: project.orgId },
-      select: { user: { select: { id: true, name: true, email: true } } },
+      select: {
+        user: {
+          select: { id: true, name: true, email: true, avatarUrl: true },
+        },
+      },
       orderBy: { user: { name: "asc" } },
     }),
     prisma.sprint.findMany({

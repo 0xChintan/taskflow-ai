@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="TaskFlow logo mark">
+  <title>TaskFlow</title>
+  <!-- Three stacked kanban cards moving from bottom-left to top-right -->
+  <rect x="4"  y="22" width="34" height="34" rx="7" fill="#6366f1" opacity="0.25" />
+  <rect x="13" y="13" width="34" height="34" rx="7" fill="#6366f1" opacity="0.5" />
+  <rect x="22" y="4"  width="34" height="34" rx="7" fill="#6366f1" />
+  <!-- Checkmark on the top (most-progressed) card -->
+  <path d="M30 21 L36 27 L47 16" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

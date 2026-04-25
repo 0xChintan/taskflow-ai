@@ -5,13 +5,14 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Priority } from "@prisma/client";
 import { PRIORITY_CLASS, PRIORITY_LABEL } from "./labels";
+import { Avatar } from "@/app/(app)/_components/avatar";
 
 export type TaskCardData = {
   id: string;
   number: number;
   title: string;
   priority: Priority;
-  assignee: { id: string; name: string } | null;
+  assignee: { id: string; name: string; avatarUrl: string | null } | null;
   sprint: { name: string; isActive: boolean } | null;
 };
 
@@ -76,12 +77,7 @@ export function TaskCard({
             </span>
           )}
           {task.assignee && (
-            <span
-              title={task.assignee.name}
-              className="flex h-5 w-5 items-center justify-center rounded-full bg-subtle border border-border text-[10px] font-medium"
-            >
-              {task.assignee.name.slice(0, 1).toUpperCase()}
-            </span>
+            <Avatar user={task.assignee} size={20} />
           )}
         </div>
       </div>

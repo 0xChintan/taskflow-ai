@@ -6,6 +6,8 @@ import { DEFAULT_ORG_COLOR, getContrastForeground } from "@/lib/color";
 import { OrgSwitcher } from "./_components/org-switcher";
 import { NotificationBell } from "./_components/notification-bell";
 import { RealtimeRefresh } from "./_components/realtime-refresh";
+import { LogoMark } from "./_components/logo";
+import { Avatar } from "./_components/avatar";
 
 export default async function AppLayout({
   children,
@@ -38,15 +40,10 @@ export default async function AppLayout({
           <div className="flex items-center gap-3">
             <Link
               href="/dashboard"
-              className="flex items-center gap-2 text-[15px] font-semibold tracking-tight"
+              className="flex items-center gap-2 text-[15px] font-semibold tracking-tight text-primary"
             >
-              <span
-                className="inline-flex h-6 w-6 items-center justify-center rounded-md text-[12px] font-bold text-primary-foreground shadow-xs"
-                style={{ backgroundColor: brand }}
-              >
-                T
-              </span>
-              TaskFlow
+              <LogoMark size={26} />
+              <span className="text-foreground">TaskFlow</span>
             </Link>
             <span className="text-border-strong">/</span>
             <OrgSwitcher
@@ -60,17 +57,10 @@ export default async function AppLayout({
               <Link
                 href="/settings/user"
                 title={`${user?.name} — account settings`}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-subtle text-xs font-medium hover:ring-2 hover:ring-border-strong hover:ring-offset-2 hover:ring-offset-background transition"
+                className="rounded-full hover:ring-2 hover:ring-border-strong hover:ring-offset-2 hover:ring-offset-background transition"
               >
-                {user?.avatarUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={user.avatarUrl}
-                    alt={user.name}
-                    className="h-full w-full rounded-full object-cover"
-                  />
-                ) : (
-                  (user?.name ?? "U").slice(0, 1).toUpperCase()
+                {user && (
+                  <Avatar user={user} size={32} />
                 )}
               </Link>
               <form action={logout}>
