@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
 import { deleteOrg } from "@/app/lib/actions/orgs";
+import { ConfirmDeleteDialog } from "@/app/(app)/_components/confirm-delete-dialog";
 
 export function DeleteOrgButton({
   orgId,
@@ -10,57 +10,23 @@ export function DeleteOrgButton({
   orgId: string;
   orgName: string;
 }) {
-  const [pending, startTransition] = useTransition();
-  const [open, setOpen] = useState(false);
-  const [confirmText, setConfirmText] = useState("");
-
-  if (!open) {
-    return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="rounded-md border border-destructive/40 bg-background px-3 py-1.5 text-sm font-medium text-destructive hover:bg-destructive/10"
-      >
-        Delete organization
-      </button>
-    );
-  }
-
-  const matches = confirmText === orgName;
-
   return (
-    <div className="space-y-3">
-      <p className="text-sm">
-        Type <span className="font-mono font-semibold">{orgName}</span> to confirm.
-        This deletes all projects, tasks, comments, and files in this org.
-      </p>
-      <input
-        autoFocus
-        value={confirmText}
-        onChange={(e) => setConfirmText(e.target.value)}
-        placeholder={orgName}
-        className="w-full max-w-sm rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-destructive"
-      />
-      <div className="flex gap-2">
+    <ConfirmDeleteDialog
+      title="Delete organization?"
+      description={`This will permanently delete "${orgName}" and everything inside it — projects, tasks, comments, attachments, and all member records. This cannot be undone.`}
+      confirmText={orgName}
+      confirmButtonLabel="Delete organization"
+      onConfirm={() => deleteOrg(orgId)}
+    >
+      {(open) => (
         <button
           type="button"
-          disabled={!matches || pending}
-          onClick={() => startTransition(() => deleteOrg(orgId))}
-          className="rounded-md bg-destructive px-3 py-1.5 text-sm font-medium text-destructive-foreground hover:opacity-90 disabled:opacity-40"
+          onClick={open}
+          className="rounded-lg border border-destructive/40 bg-background px-3.5 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 transition"
         >
-          {pending ? "Deleting…" : "Delete forever"}
+          Delete organization
         </button>
-        <button
-          type="button"
-          onClick={() => {
-            setOpen(false);
-            setConfirmText("");
-          }}
-          className="rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground"
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
+      )}
+    </ConfirmDeleteDialog>
   );
 }

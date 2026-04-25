@@ -8,10 +8,10 @@ export async function NotificationBell() {
   return (
     <Link
       href="/notifications"
-      className={`relative inline-flex h-9 w-9 items-center justify-center rounded-md transition-colors ${
+      className={`relative inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors ${
         hasUnread
           ? "bg-primary/10 text-primary hover:bg-primary/15"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          : "text-muted-foreground hover:bg-subtle hover:text-foreground"
       }`}
       aria-label={`Notifications (${count} unread)`}
     >
@@ -37,7 +37,7 @@ export async function NotificationBell() {
         />
       </svg>
       {hasUnread && (
-        <span className="absolute -top-1 -right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground ring-2 ring-background tabular-nums">
+        <span className="absolute -top-0.5 -right-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground ring-2 ring-background tabular-nums">
           {count > 99 ? "99+" : count}
         </span>
       )}

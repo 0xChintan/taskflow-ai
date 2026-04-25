@@ -1,7 +1,7 @@
 "use client";
 
-import { useTransition } from "react";
 import { deleteTask } from "@/app/lib/actions/tasks";
+import { ConfirmDeleteDialog } from "@/app/(app)/_components/confirm-delete-dialog";
 
 export function DeleteTaskButton({
   taskId,
@@ -10,20 +10,22 @@ export function DeleteTaskButton({
   taskId: string;
   taskTitle: string;
 }) {
-  const [pending, startTransition] = useTransition();
-
   return (
-    <button
-      type="button"
-      disabled={pending}
-      onClick={() => {
-        if (confirm(`Delete task "${taskTitle}"? This cannot be undone.`)) {
-          startTransition(() => deleteTask(taskId));
-        }
-      }}
-      className="rounded-md border border-destructive/40 bg-background px-3 py-1.5 text-sm font-medium text-destructive hover:bg-destructive/10 disabled:opacity-50"
+    <ConfirmDeleteDialog
+      title="Delete task?"
+      description={`Permanently remove "${taskTitle}" along with its comments, attachments, and activity history. This cannot be undone.`}
+      confirmButtonLabel="Delete task"
+      onConfirm={() => deleteTask(taskId)}
     >
-      {pending ? "Deleting…" : "Delete task"}
-    </button>
+      {(open) => (
+        <button
+          type="button"
+          onClick={open}
+          className="rounded-lg border border-destructive/40 bg-background px-3.5 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 transition"
+        >
+          Delete task
+        </button>
+      )}
+    </ConfirmDeleteDialog>
   );
 }

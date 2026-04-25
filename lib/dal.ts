@@ -36,7 +36,7 @@ export const getOrgsForUser = cache(async () => {
     where: { userId },
     select: {
       role: true,
-      org: { select: { id: true, name: true, slug: true, logoUrl: true } },
+      org: { select: { id: true, name: true, slug: true, logoUrl: true, color: true } },
     },
     orderBy: { org: { name: "asc" } },
   });

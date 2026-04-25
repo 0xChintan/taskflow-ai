@@ -1,7 +1,7 @@
 "use client";
 
-import { useTransition } from "react";
 import { deleteAttachment } from "@/app/lib/actions/attachments";
+import { ConfirmDeleteDialog } from "@/app/(app)/_components/confirm-delete-dialog";
 
 export type AttachmentData = {
   id: string;
@@ -55,7 +55,6 @@ function AttachmentTile({
   attachment: AttachmentData;
   currentUserId: string;
 }) {
-  const [pending, startTransition] = useTransition();
   const canDelete = attachment.uploaderId === currentUserId;
 
   return (
@@ -69,7 +68,9 @@ function AttachmentTile({
           />
           <div className="px-2 py-1.5 text-xs">
             <div className="truncate">{attachment.filename}</div>
-            <div className="text-muted-foreground">{formatBytes(attachment.size)}</div>
+            <div className="text-muted-foreground">
+              {formatBytes(attachment.size)}
+            </div>
           </div>
         </a>
       ) : (
@@ -80,7 +81,13 @@ function AttachmentTile({
           download={attachment.filename}
           className="flex items-start gap-2 p-3 text-sm"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="shrink-0 mt-0.5">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            className="shrink-0 mt-0.5"
+          >
             <path
               d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6"
               stroke="currentColor"
@@ -91,24 +98,30 @@ function AttachmentTile({
           </svg>
           <div className="min-w-0">
             <div className="truncate font-medium">{attachment.filename}</div>
-            <div className="text-xs text-muted-foreground">{formatBytes(attachment.size)}</div>
+            <div className="text-xs text-muted-foreground">
+              {formatBytes(attachment.size)}
+            </div>
           </div>
         </a>
       )}
       {canDelete && (
-        <button
-          type="button"
-          disabled={pending}
-          onClick={() => {
-            if (confirm(`Delete ${attachment.filename}?`)) {
-              startTransition(() => deleteAttachment(attachment.id));
-            }
-          }}
-          className="absolute top-1 right-1 rounded bg-background/80 px-1.5 py-0.5 text-xs text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-destructive disabled:opacity-50"
-          aria-label={`Delete ${attachment.filename}`}
+        <ConfirmDeleteDialog
+          title="Delete attachment?"
+          description={`Remove "${attachment.filename}" from this task. This cannot be undone.`}
+          confirmButtonLabel="Delete file"
+          onConfirm={() => deleteAttachment(attachment.id)}
         >
-          ×
-        </button>
+          {(open) => (
+            <button
+              type="button"
+              onClick={open}
+              className="absolute top-1 right-1 rounded-md bg-background/90 px-1.5 py-0.5 text-xs text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-destructive transition"
+              aria-label={`Delete ${attachment.filename}`}
+            >
+              ×
+            </button>
+          )}
+        </ConfirmDeleteDialog>
       )}
     </div>
   );

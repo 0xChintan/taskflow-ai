@@ -5,18 +5,21 @@ export default function LoginPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-medium">Welcome back</h2>
-        <p className="text-sm text-muted-foreground">
-          Sign in to continue to your workspace.
+        <h2 className="text-lg font-semibold">Welcome back</h2>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          Sign in to continue.
         </p>
       </div>
       <LoginForm />
-      <p className="text-sm text-muted-foreground text-center">
-        New here?{" "}
-        <Link href="/signup" className="text-foreground underline underline-offset-4">
-          Create an account
+      <div className="text-center text-sm text-muted-foreground border-t border-border pt-4">
+        Don&apos;t have an account?{" "}
+        <Link
+          href="/signup"
+          className="font-medium text-primary hover:underline"
+        >
+          Sign up
         </Link>
-      </p>
+      </div>
     </div>
   );
 }

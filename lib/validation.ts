@@ -18,6 +18,10 @@ export const LoginSchema = z.object({
 
 export const OrgSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }).max(60).trim(),
+  color: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/, { message: "Pick a valid color." })
+    .optional(),
 });
 
 const KEY_REGEX = /^[A-Z][A-Z0-9]{1,9}$/;
@@ -40,8 +44,58 @@ export type AuthFormState =
   | { errors?: { name?: string[]; email?: string[]; password?: string[]; form?: string[] } }
   | undefined;
 
+export const ProfileSchema = z.object({
+  name: z.string().min(2, { message: "Name must be at least 2 characters." }).max(60).trim(),
+  avatarUrl: z
+    .string()
+    .url({ message: "Must be a valid URL." })
+    .max(500)
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
+  timezone: z.string().min(1).max(50).trim(),
+});
+
+export type ProfileFormState =
+  | {
+      errors?: {
+        name?: string[];
+        avatarUrl?: string[];
+        timezone?: string[];
+        form?: string[];
+      };
+      ok?: boolean;
+    }
+  | undefined;
+
+export const PasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, { message: "Current password is required." }),
+    newPassword: z
+      .string()
+      .min(8, { message: "Be at least 8 characters." })
+      .regex(/[a-zA-Z]/, { message: "Contain at least one letter." })
+      .regex(/[0-9]/, { message: "Contain at least one number." }),
+    confirmPassword: z.string().min(1, { message: "Please confirm your new password." }),
+  })
+  .refine((d) => d.newPassword === d.confirmPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmPassword"],
+  });
+
+export type PasswordFormState =
+  | {
+      errors?: {
+        currentPassword?: string[];
+        newPassword?: string[];
+        confirmPassword?: string[];
+        form?: string[];
+      };
+      ok?: boolean;
+    }
+  | undefined;
+
 export type OrgFormState =
-  | { errors?: { name?: string[]; form?: string[] }; ok?: boolean }
+  | { errors?: { name?: string[]; color?: string[]; form?: string[] }; ok?: boolean }
   | undefined;
 
 export type ProjectFormState =

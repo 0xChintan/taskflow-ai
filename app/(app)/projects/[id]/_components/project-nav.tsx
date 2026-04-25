@@ -13,18 +13,21 @@ export function ProjectNav({
     { key: "analytics", label: "Analytics", href: `/projects/${projectId}/analytics` },
   ];
   return (
-    <div className="flex items-center gap-4 border-b border-border pb-2">
+    <div className="flex items-center gap-1 border-b border-border">
       {items.map((it) => (
         <Link
           key={it.key}
           href={it.href}
-          className={`text-sm border-b-2 pb-2 -mb-2 ${
+          className={`relative px-3 py-2 text-sm transition-colors ${
             active === it.key
-              ? "border-foreground text-foreground font-medium"
-              : "border-transparent text-muted-foreground hover:text-foreground"
+              ? "text-foreground font-medium"
+              : "text-muted-foreground hover:text-foreground"
           }`}
         >
           {it.label}
+          {active === it.key && (
+            <span className="absolute -bottom-px left-0 right-0 h-0.5 bg-primary rounded-full" />
+          )}
         </Link>
       ))}
     </div>

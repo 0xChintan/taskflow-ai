@@ -1,7 +1,7 @@
 "use client";
 
-import { useTransition } from "react";
 import { deleteProject } from "@/app/lib/actions/projects";
+import { ConfirmDeleteDialog } from "@/app/(app)/_components/confirm-delete-dialog";
 
 export function DeleteProjectButton({
   projectId,
@@ -10,22 +10,23 @@ export function DeleteProjectButton({
   projectId: string;
   projectName: string;
 }) {
-  const [pending, startTransition] = useTransition();
-
   return (
-    <button
-      type="button"
-      disabled={pending}
-      onClick={() => {
-        if (
-          confirm(`Delete project "${projectName}"? This cannot be undone.`)
-        ) {
-          startTransition(() => deleteProject(projectId));
-        }
-      }}
-      className="rounded-md border border-destructive/40 bg-background px-3 py-1.5 text-sm font-medium text-destructive hover:bg-destructive/10 disabled:opacity-50"
+    <ConfirmDeleteDialog
+      title="Delete project?"
+      description={`This will permanently delete "${projectName}" and all of its tasks, comments, attachments, sprints, and history. This cannot be undone.`}
+      confirmText={projectName}
+      confirmButtonLabel="Delete project"
+      onConfirm={() => deleteProject(projectId)}
     >
-      {pending ? "Deleting…" : "Delete project"}
-    </button>
+      {(open) => (
+        <button
+          type="button"
+          onClick={open}
+          className="rounded-lg border border-destructive/40 bg-background px-3.5 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 transition"
+        >
+          Delete project
+        </button>
+      )}
+    </ConfirmDeleteDialog>
   );
 }

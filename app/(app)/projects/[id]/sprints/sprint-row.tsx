@@ -6,6 +6,7 @@ import {
   deleteSprint,
   startSprint,
 } from "@/app/lib/actions/sprints";
+import { ConfirmDeleteDialog } from "@/app/(app)/_components/confirm-delete-dialog";
 
 type SprintData = {
   id: string;
@@ -36,7 +37,8 @@ export function SprintRow({ sprint }: { sprint: SprintData }) {
             <p className="mt-1 text-sm text-muted-foreground">{sprint.goal}</p>
           )}
           <p className="mt-2 text-xs text-muted-foreground">
-            {sprint.startDate} → {sprint.endDate} · {sprint.taskCount} {sprint.taskCount === 1 ? "task" : "tasks"}
+            {sprint.startDate} → {sprint.endDate} · {sprint.taskCount}{" "}
+            {sprint.taskCount === 1 ? "task" : "tasks"}
           </p>
         </div>
         <div className="flex items-center gap-3 text-xs shrink-0">
@@ -59,18 +61,22 @@ export function SprintRow({ sprint }: { sprint: SprintData }) {
               {pending ? "…" : "Start"}
             </button>
           )}
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() => {
-              if (confirm(`Delete sprint "${sprint.name}"? Tasks remain in the project.`)) {
-                startTransition(() => deleteSprint(sprint.id));
-              }
-            }}
-            className="text-muted-foreground hover:text-destructive disabled:opacity-50"
+          <ConfirmDeleteDialog
+            title="Delete sprint?"
+            description={`Remove "${sprint.name}". The sprint's tasks will stay in the project but will no longer be assigned to a sprint.`}
+            confirmButtonLabel="Delete sprint"
+            onConfirm={() => deleteSprint(sprint.id)}
           >
-            Delete
-          </button>
+            {(open) => (
+              <button
+                type="button"
+                onClick={open}
+                className="text-muted-foreground hover:text-destructive transition"
+              >
+                Delete
+              </button>
+            )}
+          </ConfirmDeleteDialog>
         </div>
       </div>
     </li>

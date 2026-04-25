@@ -9,6 +9,9 @@ import {
 } from "@/app/(app)/projects/[id]/_components/labels";
 import { GenerateDescriptionButton } from "./_components/generate-description-button";
 
+const inputCls =
+  "w-full rounded-lg border border-border bg-background px-3 py-2 text-sm shadow-xs hover:border-border-strong focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition";
+
 export function EditTaskForm({
   taskId,
   members,
@@ -33,13 +36,13 @@ export function EditTaskForm({
   const [state, formAction, pending] = useActionState(action, undefined);
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction} className="space-y-5">
       <Field label="Title" error={state?.errors?.title?.[0]}>
         <input
           name="title"
           required
           defaultValue={initial.title}
-          className="w-full rounded-md border border-border bg-background px-3 py-2 text-base font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-base font-medium shadow-xs hover:border-border-strong focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
         />
       </Field>
 
@@ -52,21 +55,17 @@ export function EditTaskForm({
           name="description"
           rows={6}
           defaultValue={initial.description}
-          placeholder="Add more details…"
-          className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          placeholder="Add more details… markdown supported"
+          className={`${inputCls} resize-y leading-relaxed`}
         />
         {state?.errors?.description?.[0] && (
           <p className="text-xs text-destructive">{state.errors.description[0]}</p>
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-4">
         <Field label="Status" error={state?.errors?.status?.[0]}>
-          <select
-            name="status"
-            defaultValue={initial.status}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-          >
+          <select name="status" defaultValue={initial.status} className={inputCls}>
             {STATUS_COLUMNS.map((c) => (
               <option key={c.status} value={c.status}>
                 {c.label}
@@ -76,11 +75,7 @@ export function EditTaskForm({
         </Field>
 
         <Field label="Priority" error={state?.errors?.priority?.[0]}>
-          <select
-            name="priority"
-            defaultValue={initial.priority}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-          >
+          <select name="priority" defaultValue={initial.priority} className={inputCls}>
             {(Object.keys(PRIORITY_LABEL) as Priority[]).map((p) => (
               <option key={p} value={p}>
                 {PRIORITY_LABEL[p]}
@@ -90,15 +85,22 @@ export function EditTaskForm({
         </Field>
 
         <Field label="Assignee" error={state?.errors?.assigneeId?.[0]}>
-          <select
-            name="assigneeId"
-            defaultValue={initial.assigneeId}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-          >
+          <select name="assigneeId" defaultValue={initial.assigneeId} className={inputCls}>
             <option value="">Unassigned</option>
             {members.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+
+        <Field label="Sprint">
+          <select name="sprintId" defaultValue={initial.sprintId} className={inputCls}>
+            <option value="">No sprint (backlog)</option>
+            {sprints.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}{s.isActive ? " (active)" : ""}
               </option>
             ))}
           </select>
@@ -111,7 +113,7 @@ export function EditTaskForm({
             min={0}
             max={999}
             defaultValue={initial.storyPoints}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            className={inputCls}
           />
         </Field>
 
@@ -120,39 +122,33 @@ export function EditTaskForm({
             name="dueDate"
             type="date"
             defaultValue={initial.dueDate}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            className={inputCls}
           />
-        </Field>
-
-        <Field label="Sprint" error={undefined}>
-          <select
-            name="sprintId"
-            defaultValue={initial.sprintId}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-          >
-            <option value="">No sprint (backlog)</option>
-            {sprints.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}{s.isActive ? " (active)" : ""}
-              </option>
-            ))}
-          </select>
         </Field>
       </div>
 
       {state?.errors?.form && (
-        <p className="text-sm text-destructive">{state.errors.form[0]}</p>
+        <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          {state.errors.form[0]}
+        </div>
       )}
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 pt-2 border-t border-border">
         <button
           type="submit"
           disabled={pending}
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:opacity-90 active:scale-[0.99] disabled:opacity-50 transition"
         >
           {pending ? "Saving…" : "Save changes"}
         </button>
-        {state?.ok && <span className="text-sm text-muted-foreground">Saved.</span>}
+        {state?.ok && (
+          <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-emerald-600">
+              <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Saved
+          </span>
+        )}
       </div>
     </form>
   );

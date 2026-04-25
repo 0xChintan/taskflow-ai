@@ -18,13 +18,17 @@ import {
 
 export async function createOrg(_prev: OrgFormState, formData: FormData): Promise<OrgFormState> {
   const { userId } = await verifySession();
-  const parsed = OrgSchema.safeParse({ name: formData.get("name") });
+  const parsed = OrgSchema.safeParse({
+    name: formData.get("name"),
+    color: formData.get("color") || undefined,
+  });
   if (!parsed.success) return { errors: z.flattenError(parsed.error).fieldErrors };
 
   const org = await prisma.organization.create({
     data: {
       name: parsed.data.name,
       slug: suggestOrgSlug(parsed.data.name),
+      ...(parsed.data.color ? { color: parsed.data.color } : {}),
       members: { create: { userId, role: Role.OWNER } },
     },
     select: { id: true },
@@ -54,12 +58,18 @@ export async function updateOrg(_prev: OrgFormState, formData: FormData): Promis
 
   await requireOrgRole(org.id, Role.OWNER, Role.ADMIN);
 
-  const parsed = OrgSchema.safeParse({ name: formData.get("name") });
+  const parsed = OrgSchema.safeParse({
+    name: formData.get("name"),
+    color: formData.get("color") || undefined,
+  });
   if (!parsed.success) return { errors: z.flattenError(parsed.error).fieldErrors };
 
   await prisma.organization.update({
     where: { id: org.id },
-    data: { name: parsed.data.name },
+    data: {
+      name: parsed.data.name,
+      ...(parsed.data.color ? { color: parsed.data.color } : {}),
+    },
   });
 
   revalidatePath("/", "layout");

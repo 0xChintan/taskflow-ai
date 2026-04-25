@@ -10,7 +10,7 @@ export function MarkAllReadButton() {
       type="button"
       disabled={pending}
       onClick={() => startTransition(() => markAllNotificationsRead())}
-      className="text-sm text-muted-foreground hover:text-foreground disabled:opacity-50"
+      className="text-sm text-primary hover:underline disabled:opacity-50 transition"
     >
       {pending ? "Marking…" : "Mark all read"}
     </button>

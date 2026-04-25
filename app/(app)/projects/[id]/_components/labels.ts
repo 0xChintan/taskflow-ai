@@ -22,9 +22,9 @@ export const PRIORITY_LABEL: Record<Priority, string> = {
 };
 
 export const PRIORITY_CLASS: Record<Priority, string> = {
-  NONE: "bg-muted text-muted-foreground",
-  LOW: "bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300",
-  MEDIUM: "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300",
-  HIGH: "bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300",
-  URGENT: "bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300",
+  NONE: "bg-subtle text-muted-foreground",
+  LOW: "bg-blue-50 text-blue-700 ring-1 ring-blue-100",
+  MEDIUM: "bg-amber-50 text-amber-700 ring-1 ring-amber-100",
+  HIGH: "bg-orange-50 text-orange-700 ring-1 ring-orange-100",
+  URGENT: "bg-red-50 text-red-700 ring-1 ring-red-100",
 };

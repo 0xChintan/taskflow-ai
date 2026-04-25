@@ -7,6 +7,7 @@ import {
   inviteMember,
   removeMember,
 } from "@/app/lib/actions/orgs";
+import { ConfirmDeleteDialog } from "@/app/(app)/_components/confirm-delete-dialog";
 
 type Member = {
   id: string;
@@ -128,19 +129,22 @@ function RoleSelect({ memberId, role }: { memberId: string; role: Role }) {
 }
 
 function RemoveButton({ memberId, memberName }: { memberId: string; memberName: string }) {
-  const [pending, startTransition] = useTransition();
   return (
-    <button
-      type="button"
-      disabled={pending}
-      onClick={() => {
-        if (confirm(`Remove ${memberName} from this organization?`)) {
-          startTransition(() => removeMember(memberId));
-        }
-      }}
-      className="text-xs text-destructive hover:underline disabled:opacity-50"
+    <ConfirmDeleteDialog
+      title="Remove member?"
+      description={`Remove ${memberName} from this organization. They'll lose access to all projects and tasks here.`}
+      confirmButtonLabel="Remove member"
+      onConfirm={() => removeMember(memberId)}
     >
-      {pending ? "Removing…" : "Remove"}
-    </button>
+      {(open) => (
+        <button
+          type="button"
+          onClick={open}
+          className="text-xs text-destructive hover:underline transition"
+        >
+          Remove
+        </button>
+      )}
+    </ConfirmDeleteDialog>
   );
 }

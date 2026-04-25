@@ -18,7 +18,8 @@ export function SignupForm() {
           type="text"
           autoComplete="name"
           required
-          className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          placeholder="Jane Doe"
+          className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm shadow-xs placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
         />
         {state?.errors?.name && (
           <p className="text-xs text-destructive">{state.errors.name[0]}</p>
@@ -35,7 +36,8 @@ export function SignupForm() {
           type="email"
           autoComplete="email"
           required
-          className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          placeholder="you@example.com"
+          className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm shadow-xs placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
         />
         {state?.errors?.email && (
           <p className="text-xs text-destructive">{state.errors.email[0]}</p>
@@ -52,10 +54,11 @@ export function SignupForm() {
           type="password"
           autoComplete="new-password"
           required
-          className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          placeholder="At least 8 characters"
+          className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm shadow-xs placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
         />
         {state?.errors?.password && (
-          <ul className="text-xs text-destructive list-disc list-inside">
+          <ul className="text-xs text-destructive list-disc list-inside space-y-0.5">
             {state.errors.password.map((e) => (
               <li key={e}>{e}</li>
             ))}
@@ -64,15 +67,17 @@ export function SignupForm() {
       </div>
 
       {state?.errors?.form && (
-        <p className="text-sm text-destructive">{state.errors.form[0]}</p>
+        <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          {state.errors.form[0]}
+        </div>
       )}
 
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+        className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm hover:opacity-90 active:scale-[0.99] disabled:opacity-50 transition"
       >
-        {pending ? "Creating account…" : "Sign up"}
+        {pending ? "Creating account…" : "Create account"}
       </button>
     </form>
   );

@@ -34,6 +34,8 @@ export function FilterBar({
   }
 
   const hasActive = Boolean(filters.q || filters.assignee || filters.priority);
+  const inputClass =
+    "rounded-lg border border-border bg-background px-3 py-1.5 text-sm shadow-xs hover:border-border-strong focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition";
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -42,23 +44,32 @@ export function FilterBar({
           e.preventDefault();
           pushFilters({ ...filters, q: q || undefined });
         }}
+        className="relative"
       >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+        >
+          <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.8" />
+          <path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
         <input
           type="search"
           placeholder="Search title…"
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onBlur={() => pushFilters({ ...filters, q: q || undefined })}
-          className="w-48 rounded-md border border-border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          className={`w-56 ${inputClass} pl-8`}
         />
       </form>
 
       <select
         value={filters.assignee ?? ""}
-        onChange={(e) =>
-          pushFilters({ ...filters, assignee: e.target.value || undefined })
-        }
-        className="rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+        onChange={(e) => pushFilters({ ...filters, assignee: e.target.value || undefined })}
+        className={inputClass}
       >
         <option value="">All assignees</option>
         <option value="me">Me</option>
@@ -74,10 +85,8 @@ export function FilterBar({
 
       <select
         value={filters.priority ?? ""}
-        onChange={(e) =>
-          pushFilters({ ...filters, priority: e.target.value || undefined })
-        }
-        className="rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+        onChange={(e) => pushFilters({ ...filters, priority: e.target.value || undefined })}
+        className={inputClass}
       >
         <option value="">All priorities</option>
         {(Object.keys(PRIORITY_LABEL) as Priority[]).map((p) => (
@@ -94,12 +103,14 @@ export function FilterBar({
             setQ("");
             pushFilters({});
           }}
-          className="text-sm text-muted-foreground hover:text-foreground"
+          className="text-sm text-muted-foreground hover:text-foreground hover:bg-subtle px-2.5 py-1.5 rounded-md transition"
         >
           Clear
         </button>
       )}
-      {pending && <span className="text-xs text-muted-foreground">…</span>}
+      {pending && (
+        <span className="inline-block h-3 w-3 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+      )}
     </div>
   );
 }

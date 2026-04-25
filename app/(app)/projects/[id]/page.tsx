@@ -6,6 +6,7 @@ import { requireProjectAccess, verifySession } from "@/lib/dal";
 import { KanbanBoard } from "./_components/kanban-board";
 import { FilterBar } from "./_components/filter-bar";
 import { ProjectNav } from "./_components/project-nav";
+import { NewTaskDialog } from "./_components/new-task-dialog";
 import { RealtimeRefresh } from "@/app/(app)/_components/realtime-refresh";
 
 const PRIORITY_VALUES = new Set<string>(Object.values(Priority));
@@ -81,16 +82,20 @@ export default async function ProjectPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between">
-        <div className="flex items-start gap-3">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-3 min-w-0">
           <div
-            className="mt-1.5 h-4 w-4 rounded-full"
+            className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-sm font-bold text-white shadow-xs"
             style={{ background: project.color }}
-          />
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-semibold tracking-tight">{project.name}</h1>
-              <span className="text-sm text-muted-foreground font-mono">{project.key}</span>
+          >
+            {project.key.slice(0, 2)}
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-baseline gap-2">
+              <h1 className="text-2xl font-semibold tracking-tight truncate">{project.name}</h1>
+              <span className="text-xs text-muted-foreground font-mono tracking-wide">
+                {project.key}
+              </span>
             </div>
             {project.description && (
               <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
@@ -99,12 +104,15 @@ export default async function ProjectPage({
             )}
           </div>
         </div>
-        <Link
-          href={`/projects/${project.id}/settings`}
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          Settings
-        </Link>
+        <div className="flex items-center gap-2 shrink-0">
+          <Link
+            href={`/projects/${project.id}/settings`}
+            className="text-sm text-muted-foreground hover:text-foreground hover:bg-subtle px-2.5 py-1.5 rounded-md transition"
+          >
+            Settings
+          </Link>
+          <NewTaskDialog projectId={project.id} />
+        </div>
       </div>
 
       <ProjectNav projectId={project.id} active="board" />

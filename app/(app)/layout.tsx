@@ -2,6 +2,7 @@ import Link from "next/link";
 import { logout } from "@/app/lib/actions/auth";
 import { getActiveOrg, getCurrentUser, getOrgsForUser } from "@/lib/dal";
 import { verifySession } from "@/lib/dal";
+import { DEFAULT_ORG_COLOR, getContrastForeground } from "@/lib/color";
 import { OrgSwitcher } from "./_components/org-switcher";
 import { NotificationBell } from "./_components/notification-bell";
 import { RealtimeRefresh } from "./_components/realtime-refresh";
@@ -18,31 +19,70 @@ export default async function AppLayout({
     getOrgsForUser(),
   ]);
 
+  const brand = activeOrg?.color ?? DEFAULT_ORG_COLOR;
+  const brandForeground = getContrastForeground(brand);
+
   return (
-    <div className="flex flex-1 flex-col">
-      <header className="border-b border-border">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-sm font-semibold">
+    <div
+      className="flex flex-1 flex-col bg-muted/40"
+      style={
+        {
+          "--primary": brand,
+          "--primary-foreground": brandForeground,
+          "--ring": brand,
+        } as React.CSSProperties
+      }
+    >
+      <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 h-14">
+          <div className="flex items-center gap-3">
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 text-[15px] font-semibold tracking-tight"
+            >
+              <span
+                className="inline-flex h-6 w-6 items-center justify-center rounded-md text-[12px] font-bold text-primary-foreground shadow-xs"
+                style={{ backgroundColor: brand }}
+              >
+                T
+              </span>
               TaskFlow
             </Link>
-            <span className="text-muted-foreground">/</span>
+            <span className="text-border-strong">/</span>
             <OrgSwitcher
-              active={activeOrg ? { id: activeOrg.id, name: activeOrg.name } : null}
-              orgs={orgs.map((o) => ({ id: o.id, name: o.name }))}
+              active={activeOrg ? { id: activeOrg.id, name: activeOrg.name, color: activeOrg.color } : null}
+              orgs={orgs.map((o) => ({ id: o.id, name: o.name, color: o.color }))}
             />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <NotificationBell />
-            <span className="text-sm text-muted-foreground">{user?.email}</span>
-            <form action={logout}>
-              <button
-                type="submit"
-                className="text-sm text-muted-foreground hover:text-foreground"
+            <div className="flex items-center gap-2 ml-1 pl-3 border-l border-border">
+              <Link
+                href="/settings/user"
+                title={`${user?.name} — account settings`}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-subtle text-xs font-medium hover:ring-2 hover:ring-border-strong hover:ring-offset-2 hover:ring-offset-background transition"
               >
-                Sign out
-              </button>
-            </form>
+                {user?.avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.name}
+                    className="h-full w-full rounded-full object-cover"
+                  />
+                ) : (
+                  (user?.name ?? "U").slice(0, 1).toUpperCase()
+                )}
+              </Link>
+              <form action={logout}>
+                <button
+                  type="submit"
+                  className="text-sm text-muted-foreground hover:text-foreground transition px-2"
+                  title={user?.email}
+                >
+                  Sign out
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </header>
