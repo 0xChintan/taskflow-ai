@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Role } from "@prisma/client";
+import { Priority, Role, TaskStatus } from "@prisma/client";
 
 export const SignupSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }).trim(),
@@ -59,6 +59,53 @@ export type ProjectFormState =
 
 export type InviteFormState =
   | { errors?: { email?: string[]; role?: string[]; form?: string[] }; ok?: boolean }
+  | undefined;
+
+const optionalString = z.string().trim().optional().or(z.literal("").transform(() => undefined));
+
+export const TaskCreateSchema = z.object({
+  title: z.string().min(1, { message: "Title is required." }).max(200).trim(),
+  status: z.enum(TaskStatus).default(TaskStatus.TODO),
+});
+
+export const TaskUpdateSchema = z.object({
+  title: z.string().min(1, { message: "Title is required." }).max(200).trim(),
+  description: optionalString,
+  status: z.enum(TaskStatus),
+  priority: z.enum(Priority),
+  assigneeId: optionalString,
+  storyPoints: z
+    .string()
+    .optional()
+    .or(z.literal(""))
+    .transform((v) => (v === "" || v == null ? undefined : Number(v)))
+    .refine((v) => v == null || (Number.isInteger(v) && v >= 0 && v <= 999), {
+      message: "Story points must be 0–999.",
+    }),
+  dueDate: z
+    .string()
+    .optional()
+    .or(z.literal(""))
+    .transform((v) => (v === "" || v == null ? undefined : new Date(v)))
+    .refine((v) => v == null || !Number.isNaN(v.getTime()), {
+      message: "Invalid date.",
+    }),
+});
+
+export type TaskFormState =
+  | {
+      errors?: {
+        title?: string[];
+        description?: string[];
+        status?: string[];
+        priority?: string[];
+        assigneeId?: string[];
+        storyPoints?: string[];
+        dueDate?: string[];
+        form?: string[];
+      };
+      ok?: boolean;
+    }
   | undefined;
 
 export function suggestProjectKey(name: string): string {

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { prisma } from "@/lib/db";
 import { requireProjectAccess } from "@/lib/dal";
+import { KanbanBoard } from "./_components/kanban-board";
 
 export default async function ProjectPage({
   params,
@@ -15,6 +17,20 @@ export default async function ProjectPage({
   } catch {
     notFound();
   }
+
+  const tasks = await prisma.task.findMany({
+    where: { projectId: project.id },
+    select: {
+      id: true,
+      number: true,
+      title: true,
+      status: true,
+      priority: true,
+      order: true,
+      assignee: { select: { id: true, name: true } },
+    },
+    orderBy: [{ status: "asc" }, { order: "asc" }],
+  });
 
   return (
     <div className="space-y-6">
@@ -44,12 +60,7 @@ export default async function ProjectPage({
         </Link>
       </div>
 
-      <div className="rounded-lg border border-dashed border-border p-12 text-center">
-        <h2 className="text-sm font-medium">Tasks land in phase 3</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          The kanban board, task CRUD, and drag-and-drop ordering ship next.
-        </p>
-      </div>
+      <KanbanBoard tasks={tasks} projectId={project.id} projectKey={project.key} />
     </div>
   );
 }
