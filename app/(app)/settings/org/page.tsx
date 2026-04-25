@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { getActiveOrg, verifySession } from "@/lib/dal";
 import { OrgNameForm } from "./org-name-form";
 import { MembersSection } from "./members-section";
+import { DeleteOrgButton } from "./delete-org-button";
 
 export default async function OrgSettingsPage() {
   const { userId } = await verifySession();
@@ -56,6 +57,19 @@ export default async function OrgSettingsPage() {
           myRole={myMembership?.role ?? Role.VIEWER}
         />
       </section>
+
+      {myMembership?.role === Role.OWNER && (
+        <section className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 space-y-2">
+          <h2 className="text-sm font-medium text-destructive">Danger zone</h2>
+          <p className="text-sm text-muted-foreground">
+            Permanently delete this organization and everything in it — projects, tasks,
+            comments, attachments, and member records. This cannot be undone.
+          </p>
+          <div className="pt-2">
+            <DeleteOrgButton orgId={org.id} orgName={org.name} />
+          </div>
+        </section>
+      )}
     </div>
   );
 }

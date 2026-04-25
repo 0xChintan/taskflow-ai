@@ -11,6 +11,7 @@ import {
   requireProjectAccess,
   verifySession,
 } from "@/lib/dal";
+import { channels, publish } from "@/lib/realtime";
 import { ProjectSchema, type ProjectFormState } from "@/lib/validation";
 
 export async function createProject(
@@ -97,6 +98,7 @@ export async function deleteProject(projectId: string) {
   await requireOrgRole(project.orgId, Role.OWNER, Role.ADMIN);
 
   await prisma.project.delete({ where: { id: projectId } });
+  publish(channels.project(projectId), "task.deleted", { projectId });
   revalidatePath("/dashboard");
   redirect("/dashboard");
 }

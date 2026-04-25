@@ -6,6 +6,8 @@ import { Role } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { verifySession, requireOrgRole, setActiveOrgCookie, getActiveOrg } from "@/lib/dal";
+import { createNotifications } from "@/lib/notifications";
+import { channels, publish } from "@/lib/realtime";
 import {
   InviteSchema,
   OrgSchema,
@@ -65,6 +67,7 @@ export async function updateOrg(_prev: OrgFormState, formData: FormData): Promis
 }
 
 export async function inviteMember(_prev: InviteFormState, formData: FormData): Promise<InviteFormState> {
+  const { userId: actorId } = await verifySession();
   const org = await getActiveOrg();
   if (!org) return { errors: { form: ["No active organization."] } };
 
@@ -98,11 +101,74 @@ export async function inviteMember(_prev: InviteFormState, formData: FormData): 
     data: { userId: user.id, orgId: org.id, role: parsed.data.role },
   });
 
+  if (user.id !== actorId) {
+    const actor = await prisma.user.findUnique({
+      where: { id: actorId },
+      select: { name: true },
+    });
+    await createNotifications([
+      {
+        userId: user.id,
+        type: "org.member_added",
+        title: `${actor?.name ?? "Someone"} added you to ${org.name}`,
+        body: `You're now a ${parsed.data.role.toLowerCase()} of this organization.`,
+        linkUrl: "/dashboard",
+      },
+    ]);
+    publish(channels.user(user.id), "notification.added");
+  }
+
   revalidatePath("/settings/org");
   return { ok: true };
 }
 
+export async function deleteOrg(orgId: string) {
+  const { userId: actorId } = await verifySession();
+  await requireOrgRole(orgId, Role.OWNER);
+
+  const org = await prisma.organization.findUnique({
+    where: { id: orgId },
+    select: {
+      id: true,
+      name: true,
+      members: { select: { userId: true } },
+    },
+  });
+  if (!org) throw new Error("Not found");
+
+  const actor = await prisma.user.findUnique({
+    where: { id: actorId },
+    select: { name: true },
+  });
+
+  await prisma.organization.delete({ where: { id: orgId } });
+
+  // Notify every other member that the org is gone
+  const otherMembers = org.members
+    .map((m) => m.userId)
+    .filter((id) => id !== actorId);
+
+  if (otherMembers.length > 0) {
+    await createNotifications(
+      otherMembers.map((uid) => ({
+        userId: uid,
+        type: "org.deleted",
+        title: `${actor?.name ?? "Someone"} deleted "${org.name}"`,
+        body: "All projects, tasks, and files in that organization were removed.",
+        linkUrl: "/dashboard",
+      })),
+    );
+    for (const uid of otherMembers) {
+      publish(channels.user(uid), "notification.added");
+    }
+  }
+
+  revalidatePath("/", "layout");
+  redirect("/dashboard");
+}
+
 export async function changeMemberRole(memberId: string, role: Role) {
+  const { userId: actorId } = await verifySession();
   const org = await getActiveOrg();
   if (!org) throw new Error("No active organization.");
   await requireOrgRole(org.id, Role.OWNER);
@@ -121,17 +187,36 @@ export async function changeMemberRole(memberId: string, role: Role) {
   }
 
   await prisma.orgMember.update({ where: { id: memberId }, data: { role } });
+
+  if (member.userId !== actorId) {
+    const actor = await prisma.user.findUnique({
+      where: { id: actorId },
+      select: { name: true },
+    });
+    await createNotifications([
+      {
+        userId: member.userId,
+        type: "org.role_changed",
+        title: `${actor?.name ?? "Someone"} changed your role in ${org.name}`,
+        body: `You're now a ${role.toLowerCase()}.`,
+        linkUrl: "/settings/org",
+      },
+    ]);
+    publish(channels.user(member.userId), "notification.added");
+  }
+
   revalidatePath("/settings/org");
 }
 
 export async function removeMember(memberId: string) {
+  const { userId: actorId } = await verifySession();
   const org = await getActiveOrg();
   if (!org) throw new Error("No active organization.");
   await requireOrgRole(org.id, Role.OWNER, Role.ADMIN);
 
   const member = await prisma.orgMember.findUnique({
     where: { id: memberId },
-    select: { id: true, orgId: true, role: true },
+    select: { id: true, orgId: true, userId: true, role: true },
   });
   if (!member || member.orgId !== org.id) throw new Error("Not found");
 
@@ -143,5 +228,23 @@ export async function removeMember(memberId: string) {
   }
 
   await prisma.orgMember.delete({ where: { id: memberId } });
+
+  if (member.userId !== actorId) {
+    const actor = await prisma.user.findUnique({
+      where: { id: actorId },
+      select: { name: true },
+    });
+    await createNotifications([
+      {
+        userId: member.userId,
+        type: "org.removed",
+        title: `${actor?.name ?? "Someone"} removed you from ${org.name}`,
+        body: "You no longer have access to this organization.",
+        linkUrl: "/dashboard",
+      },
+    ]);
+    publish(channels.user(member.userId), "notification.added");
+  }
+
   revalidatePath("/settings/org");
 }

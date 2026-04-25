@@ -70,11 +70,17 @@ export async function deleteAttachment(attachmentId: string) {
       uploaderId: true,
       taskId: true,
       task: { select: { projectId: true, project: { select: { orgId: true } } } },
-      comment: { select: { task: { select: { projectId: true, project: { select: { orgId: true } } } } } },
+      comment: {
+        select: {
+          taskId: true,
+          task: { select: { projectId: true, project: { select: { orgId: true } } } },
+        },
+      },
     },
   });
   if (!att) throw new Error("Not found");
 
+  const parentTaskId = att.taskId ?? att.comment?.taskId ?? null;
   const projectId = att.task?.projectId ?? att.comment?.task.projectId;
   const orgId = att.task?.project.orgId ?? att.comment?.task.project.orgId;
   if (!projectId || !orgId) throw new Error("Orphaned attachment");
@@ -92,8 +98,8 @@ export async function deleteAttachment(attachmentId: string) {
   await prisma.attachment.delete({ where: { id: attachmentId } });
   await deleteFileByPublicId(att.publicId);
 
-  if (att.taskId) {
-    publish(channels.task(att.taskId), "attachment.deleted", { attachmentId });
+  if (parentTaskId) {
+    publish(channels.task(parentTaskId), "attachment.deleted", { attachmentId });
+    revalidatePath(`/projects/${projectId}/tasks/${parentTaskId}`);
   }
-  revalidatePath(`/projects/${projectId}/tasks/${att.taskId ?? ""}`);
 }
