@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { requireProjectAccess, verifySession } from "@/lib/dal";
 import { KanbanBoard } from "./_components/kanban-board";
 import { FilterBar } from "./_components/filter-bar";
+import { ProjectNav } from "./_components/project-nav";
 import { RealtimeRefresh } from "@/app/(app)/_components/realtime-refresh";
 
 const PRIORITY_VALUES = new Set<string>(Object.values(Priority));
@@ -67,6 +68,7 @@ export default async function ProjectPage({
         priority: true,
         order: true,
         assignee: { select: { id: true, name: true } },
+        sprint: { select: { name: true, isActive: true } },
       },
       orderBy: [{ status: "asc" }, { order: "asc" }],
     }),
@@ -104,6 +106,8 @@ export default async function ProjectPage({
           Settings
         </Link>
       </div>
+
+      <ProjectNav projectId={project.id} active="board" />
 
       <FilterBar
         projectId={project.id}

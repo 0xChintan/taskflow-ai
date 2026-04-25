@@ -110,6 +110,7 @@ export async function updateTask(
       status: true,
       priority: true,
       assigneeId: true,
+      sprintId: true,
       assignee: { select: { name: true } },
     },
   });
@@ -122,13 +123,15 @@ export async function updateTask(
     status: formData.get("status"),
     priority: formData.get("priority"),
     assigneeId: formData.get("assigneeId") || undefined,
+    sprintId: formData.get("sprintId") || undefined,
     storyPoints: formData.get("storyPoints") ?? "",
     dueDate: formData.get("dueDate") ?? "",
   });
   if (!parsed.success) return { errors: z.flattenError(parsed.error).fieldErrors };
 
-  const { title, description, status, priority, assigneeId, storyPoints, dueDate } = parsed.data;
+  const { title, description, status, priority, assigneeId, sprintId, storyPoints, dueDate } = parsed.data;
   const newAssigneeId = assigneeId || null;
+  const newSprintId = sprintId || null;
 
   let order: number | undefined;
   if (status !== existing.status) {
@@ -150,6 +153,7 @@ export async function updateTask(
       status,
       priority,
       assigneeId: newAssigneeId,
+      sprintId: newSprintId,
       storyPoints: storyPoints ?? null,
       dueDate: dueDate ?? null,
       ...(order !== undefined ? { order } : {}),

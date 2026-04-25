@@ -74,6 +74,7 @@ export const TaskUpdateSchema = z.object({
   status: z.enum(TaskStatus),
   priority: z.enum(Priority),
   assigneeId: optionalString,
+  sprintId: optionalString,
   storyPoints: z
     .string()
     .optional()
@@ -91,6 +92,37 @@ export const TaskUpdateSchema = z.object({
       message: "Invalid date.",
     }),
 });
+
+const dateString = z
+  .string()
+  .min(1, { message: "Date is required." })
+  .transform((v) => new Date(v))
+  .refine((v) => !Number.isNaN(v.getTime()), { message: "Invalid date." });
+
+export const SprintSchema = z
+  .object({
+    name: z.string().min(1, { message: "Name is required." }).max(80).trim(),
+    goal: z.string().max(500).trim().optional().or(z.literal("").transform(() => undefined)),
+    startDate: dateString,
+    endDate: dateString,
+  })
+  .refine((d) => d.endDate.getTime() >= d.startDate.getTime(), {
+    message: "End date must be on or after the start date.",
+    path: ["endDate"],
+  });
+
+export type SprintFormState =
+  | {
+      errors?: {
+        name?: string[];
+        goal?: string[];
+        startDate?: string[];
+        endDate?: string[];
+        form?: string[];
+      };
+      ok?: boolean;
+    }
+  | undefined;
 
 export const CommentSchema = z.object({
   body: z.string().min(1, { message: "Comment can't be empty." }).max(10_000).trim(),

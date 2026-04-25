@@ -7,20 +7,24 @@ import {
   PRIORITY_LABEL,
   STATUS_COLUMNS,
 } from "@/app/(app)/projects/[id]/_components/labels";
+import { GenerateDescriptionButton } from "./_components/generate-description-button";
 
 export function EditTaskForm({
   taskId,
   members,
+  sprints,
   initial,
 }: {
   taskId: string;
   members: { id: string; name: string; email: string }[];
+  sprints: { id: string; name: string; isActive: boolean }[];
   initial: {
     title: string;
     description: string;
     status: TaskStatus;
     priority: Priority;
     assigneeId: string;
+    sprintId: string;
     storyPoints: string;
     dueDate: string;
   };
@@ -39,7 +43,11 @@ export function EditTaskForm({
         />
       </Field>
 
-      <Field label="Description" error={state?.errors?.description?.[0]}>
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium">Description</label>
+          <GenerateDescriptionButton taskId={taskId} />
+        </div>
         <textarea
           name="description"
           rows={6}
@@ -47,7 +55,10 @@ export function EditTaskForm({
           placeholder="Add more details…"
           className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
         />
-      </Field>
+        {state?.errors?.description?.[0] && (
+          <p className="text-xs text-destructive">{state.errors.description[0]}</p>
+        )}
+      </div>
 
       <div className="grid grid-cols-2 gap-3">
         <Field label="Status" error={state?.errors?.status?.[0]}>
@@ -111,6 +122,21 @@ export function EditTaskForm({
             defaultValue={initial.dueDate}
             className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
           />
+        </Field>
+
+        <Field label="Sprint" error={undefined}>
+          <select
+            name="sprintId"
+            defaultValue={initial.sprintId}
+            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+          >
+            <option value="">No sprint (backlog)</option>
+            {sprints.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}{s.isActive ? " (active)" : ""}
+              </option>
+            ))}
+          </select>
         </Field>
       </div>
 

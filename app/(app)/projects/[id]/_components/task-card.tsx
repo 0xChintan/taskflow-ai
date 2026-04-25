@@ -12,6 +12,7 @@ export type TaskCardData = {
   title: string;
   priority: Priority;
   assignee: { id: string; name: string } | null;
+  sprint: { name: string; isActive: boolean } | null;
 };
 
 export function TaskCard({
@@ -49,10 +50,24 @@ export function TaskCard({
         {task.title}
       </Link>
       <div className="mt-2 flex items-center justify-between gap-2 text-xs text-muted-foreground">
-        <span className="font-mono">
-          {projectKey}-{task.number}
-        </span>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="font-mono shrink-0">
+            {projectKey}-{task.number}
+          </span>
+          {task.sprint && (
+            <span
+              title={task.sprint.isActive ? `${task.sprint.name} (active sprint)` : task.sprint.name}
+              className={`truncate rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                task.sprint.isActive
+                  ? "bg-primary/10 text-primary"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {task.sprint.name}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
           {task.priority !== Priority.NONE && (
             <span
               className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${PRIORITY_CLASS[task.priority]}`}

@@ -35,13 +35,14 @@ export default async function TaskDetailPage({
       storyPoints: true,
       dueDate: true,
       assigneeId: true,
+      sprintId: true,
       creator: { select: { name: true } },
       createdAt: true,
     },
   });
   if (!task) notFound();
 
-  const [members, attachments] = await Promise.all([
+  const [members, attachments, sprints] = await Promise.all([
     prisma.orgMember.findMany({
       where: { orgId: project.orgId },
       select: { user: { select: { id: true, name: true, email: true } } },
@@ -58,6 +59,11 @@ export default async function TaskDetailPage({
         uploaderId: true,
       },
       orderBy: { createdAt: "asc" },
+    }),
+    prisma.sprint.findMany({
+      where: { projectId: project.id },
+      select: { id: true, name: true, isActive: true },
+      orderBy: [{ isActive: "desc" }, { startDate: "desc" }],
     }),
   ]);
 
@@ -83,12 +89,14 @@ export default async function TaskDetailPage({
       <EditTaskForm
         taskId={task.id}
         members={members.map((m) => m.user)}
+        sprints={sprints}
         initial={{
           title: task.title,
           description: task.description ?? "",
           status: task.status,
           priority: task.priority,
           assigneeId: task.assigneeId ?? "",
+          sprintId: task.sprintId ?? "",
           storyPoints: task.storyPoints == null ? "" : String(task.storyPoints),
           dueDate: task.dueDate ? task.dueDate.toISOString().slice(0, 10) : "",
         }}
