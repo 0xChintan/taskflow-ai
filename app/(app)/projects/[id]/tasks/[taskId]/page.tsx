@@ -6,6 +6,7 @@ import { EditTaskForm } from "./edit-task-form";
 import { DeleteTaskButton } from "./delete-task-button";
 import { ActivityFeed } from "./_components/activity-feed";
 import { TaskAttachments } from "./_components/task-attachments";
+import { RealtimeRefresh } from "@/app/(app)/_components/realtime-refresh";
 
 export default async function TaskDetailPage({
   params,
@@ -110,6 +111,8 @@ export default async function TaskDetailPage({
           <DeleteTaskButton taskId={task.id} taskTitle={task.title} />
         </div>
       </div>
+
+      <RealtimeRefresh channel={`task:${task.id}`} />
     </div>
   );
 }

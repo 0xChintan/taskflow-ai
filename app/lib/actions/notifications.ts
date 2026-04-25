@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { verifySession } from "@/lib/dal";
+import { channels, publish } from "@/lib/realtime";
 
 export async function markNotificationRead(notificationId: string) {
   const { userId } = await verifySession();
@@ -10,6 +11,7 @@ export async function markNotificationRead(notificationId: string) {
     where: { id: notificationId, userId },
     data: { isRead: true },
   });
+  publish(channels.user(userId), "notification.added");
   revalidatePath("/notifications");
   revalidatePath("/", "layout");
 }
@@ -20,6 +22,7 @@ export async function markAllNotificationsRead() {
     where: { userId, isRead: false },
     data: { isRead: true },
   });
+  publish(channels.user(userId), "notification.added");
   revalidatePath("/notifications");
   revalidatePath("/", "layout");
 }

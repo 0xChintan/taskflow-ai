@@ -1,15 +1,18 @@
 import Link from "next/link";
 import { logout } from "@/app/lib/actions/auth";
 import { getActiveOrg, getCurrentUser, getOrgsForUser } from "@/lib/dal";
+import { verifySession } from "@/lib/dal";
 import { OrgSwitcher } from "./_components/org-switcher";
 import { NotificationBell } from "./_components/notification-bell";
+import { RealtimeRefresh } from "./_components/realtime-refresh";
 
 export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [user, activeOrg, orgs] = await Promise.all([
+  const [{ userId }, user, activeOrg, orgs] = await Promise.all([
+    verifySession(),
     getCurrentUser(),
     getActiveOrg(),
     getOrgsForUser(),
@@ -46,6 +49,7 @@ export default async function AppLayout({
       <main className="flex-1">
         <div className="mx-auto max-w-6xl px-6 py-8">{children}</div>
       </main>
+      <RealtimeRefresh channel={`user:${userId}`} />
     </div>
   );
 }

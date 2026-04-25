@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { Role } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { requireProjectAccess, verifySession } from "@/lib/dal";
+import { channels, publish } from "@/lib/realtime";
 import { deleteFileByPublicId, saveFile, validateFile } from "@/lib/storage";
 
 export type UploadState =
@@ -54,6 +55,7 @@ export async function uploadTaskAttachments(
     });
   }
 
+  publish(channels.task(taskId), "attachment.added", { taskId });
   revalidatePath(`/projects/${task.projectId}/tasks/${taskId}`);
   return { ok: true };
 }
@@ -90,5 +92,8 @@ export async function deleteAttachment(attachmentId: string) {
   await prisma.attachment.delete({ where: { id: attachmentId } });
   await deleteFileByPublicId(att.publicId);
 
+  if (att.taskId) {
+    publish(channels.task(att.taskId), "attachment.deleted", { attachmentId });
+  }
   revalidatePath(`/projects/${projectId}/tasks/${att.taskId ?? ""}`);
 }

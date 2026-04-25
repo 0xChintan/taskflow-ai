@@ -9,6 +9,7 @@ import { logActivity } from "@/lib/activity";
 import { requireProjectAccess, verifySession } from "@/lib/dal";
 import { createNotifications } from "@/lib/notifications";
 import { getOrderBetween } from "@/lib/order";
+import { channels, publish } from "@/lib/realtime";
 import {
   TaskCreateSchema,
   TaskUpdateSchema,
@@ -76,6 +77,7 @@ export async function createTask(
         projectId,
         taskId: task.id,
       });
+      publish(channels.project(projectId), "task.created", { taskId: task.id });
       revalidatePath(`/projects/${projectId}`);
       return { ok: true };
     } catch (e) {
@@ -211,6 +213,7 @@ export async function updateTask(
           linkUrl: `/projects/${existing.projectId}/tasks/${taskId}`,
         },
       ]);
+      publish(channels.user(newAssigneeId), "notification.added");
     }
   }
   if (title !== existing.title || (description ?? null) !== existing.description) {
@@ -230,6 +233,8 @@ export async function updateTask(
     });
   }
 
+  publish(channels.project(existing.projectId), "task.updated", { taskId });
+  publish(channels.task(taskId), "task.updated", { taskId });
   revalidatePath(`/projects/${existing.projectId}`);
   revalidatePath(`/projects/${existing.projectId}/tasks/${taskId}`);
   return { ok: true };
@@ -280,6 +285,7 @@ export async function moveTask(args: {
     });
   }
 
+  publish(channels.project(existing.projectId), "task.moved", { taskId, status });
   revalidatePath(`/projects/${existing.projectId}`);
 }
 
@@ -302,6 +308,8 @@ export async function deleteTask(taskId: string) {
     projectId: existing.projectId,
     taskId: null,
   });
+  publish(channels.project(existing.projectId), "task.deleted", { taskId });
+  publish(channels.task(taskId), "task.deleted", { taskId });
   revalidatePath(`/projects/${existing.projectId}`);
   redirect(`/projects/${existing.projectId}`);
 }

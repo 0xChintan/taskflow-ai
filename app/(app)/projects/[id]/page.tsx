@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { requireProjectAccess, verifySession } from "@/lib/dal";
 import { KanbanBoard } from "./_components/kanban-board";
 import { FilterBar } from "./_components/filter-bar";
+import { RealtimeRefresh } from "@/app/(app)/_components/realtime-refresh";
 
 const PRIORITY_VALUES = new Set<string>(Object.values(Priority));
 
@@ -112,6 +113,8 @@ export default async function ProjectPage({
       />
 
       <KanbanBoard tasks={tasks} projectId={project.id} projectKey={project.key} />
+
+      <RealtimeRefresh channel={`project:${project.id}`} />
     </div>
   );
 }

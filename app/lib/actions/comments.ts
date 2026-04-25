@@ -11,6 +11,7 @@ import {
   findMentionedUsers,
 } from "@/lib/notifications";
 import { saveFile, validateFile } from "@/lib/storage";
+import { channels, publish } from "@/lib/realtime";
 import { CommentSchema, type CommentFormState } from "@/lib/validation";
 
 const EDIT_WINDOW_MS = 15 * 60 * 1000;
@@ -121,6 +122,10 @@ export async function createComment(
   ];
   await createNotifications(notifications);
 
+  publish(channels.task(task.id), "comment.added", { commentId: comment.id });
+  for (const n of notifications) {
+    publish(channels.user(n.userId), "notification.added");
+  }
   revalidatePath(linkUrl);
   return { ok: true };
 }
@@ -154,6 +159,7 @@ export async function updateComment(
     data: { body: parsed.data.body, editedAt: new Date() },
   });
 
+  publish(channels.task(existing.task.id), "comment.updated", { commentId });
   revalidatePath(`/projects/${existing.task.projectId}/tasks/${existing.task.id}`);
   return { ok: true };
 }
@@ -168,5 +174,6 @@ export async function deleteComment(commentId: string) {
   if (existing.userId !== userId) throw new Error("Forbidden");
 
   await prisma.comment.delete({ where: { id: commentId } });
+  publish(channels.task(existing.task.id), "comment.deleted", { commentId });
   revalidatePath(`/projects/${existing.task.projectId}/tasks/${existing.task.id}`);
 }
