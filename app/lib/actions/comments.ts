@@ -10,6 +10,7 @@ import {
   extractMentions,
   findMentionedUsers,
 } from "@/lib/notifications";
+import { saveFile, validateFile } from "@/lib/storage";
 import { CommentSchema, type CommentFormState } from "@/lib/validation";
 
 const EDIT_WINDOW_MS = 15 * 60 * 1000;
@@ -26,6 +27,16 @@ export async function createComment(
   const { userId } = await verifySession();
   const parsed = CommentSchema.safeParse({ body: formData.get("body") });
   if (!parsed.success) return { errors: z.flattenError(parsed.error).fieldErrors };
+
+  const files = formData
+    .getAll("files")
+    .filter((v): v is File => v instanceof File && v.size > 0);
+  const fileErrors: string[] = [];
+  for (const f of files) {
+    const e = validateFile(f);
+    if (e) fileErrors.push(e.message);
+  }
+  if (fileErrors.length) return { errors: { form: fileErrors } };
 
   const task = await prisma.task.findUnique({
     where: { id: taskId },
@@ -50,6 +61,21 @@ export async function createComment(
     data: { body: parsed.data.body, taskId, userId },
     select: { id: true, body: true },
   });
+
+  for (const f of files) {
+    const saved = await saveFile(f);
+    await prisma.attachment.create({
+      data: {
+        commentId: comment.id,
+        uploaderId: userId,
+        filename: saved.filename,
+        url: saved.url,
+        publicId: saved.publicId,
+        mimeType: saved.mimeType,
+        size: saved.size,
+      },
+    });
+  }
 
   await logActivity({
     action: "comment.added",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { createComment } from "@/app/lib/actions/comments";
 
 export function CommentForm({ taskId }: { taskId: string }) {
@@ -8,11 +8,14 @@ export function CommentForm({ taskId }: { taskId: string }) {
   const [state, formAction, pending] = useActionState(action, undefined);
   const formRef = useRef<HTMLFormElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [pickedFiles, setPickedFiles] = useState<File[]>([]);
 
   useEffect(() => {
     if (state?.ok) {
       formRef.current?.reset();
       textareaRef.current?.focus();
+      setPickedFiles([]);
     }
   }, [state]);
 
@@ -36,10 +39,41 @@ export function CommentForm({ taskId }: { taskId: string }) {
         <p className="text-xs text-destructive">{state.errors.body[0]}</p>
       )}
       {state?.errors?.form && (
-        <p className="text-xs text-destructive">{state.errors.form[0]}</p>
+        <ul className="text-xs text-destructive list-disc list-inside">
+          {state.errors.form.map((e) => (
+            <li key={e}>{e}</li>
+          ))}
+        </ul>
       )}
+
+      <input
+        ref={fileRef}
+        type="file"
+        name="files"
+        multiple
+        className="hidden"
+        onChange={(e) => setPickedFiles(e.target.files ? Array.from(e.target.files) : [])}
+      />
+
+      {pickedFiles.length > 0 && (
+        <ul className="text-xs text-muted-foreground space-y-0.5">
+          {pickedFiles.map((f, i) => (
+            <li key={i}>📎 {f.name}</li>
+          ))}
+        </ul>
+      )}
+
       <div className="flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">⌘ + Enter to send</span>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="text-xs text-muted-foreground hover:text-foreground"
+          >
+            + Attach
+          </button>
+          <span className="text-xs text-muted-foreground">⌘ + Enter to send</span>
+        </div>
         <button
           type="submit"
           disabled={pending}

@@ -63,6 +63,16 @@ export async function ActivityFeed({
         createdAt: true,
         editedAt: true,
         user: { select: { id: true, name: true } },
+        attachments: {
+          select: {
+            id: true,
+            filename: true,
+            url: true,
+            mimeType: true,
+            size: true,
+            uploaderId: true,
+          },
+        },
       },
       orderBy: { createdAt: "asc" },
     }),
@@ -90,6 +100,7 @@ export async function ActivityFeed({
         authorId: c.user.id,
         createdAt: c.createdAt,
         editedAt: c.editedAt,
+        attachments: c.attachments,
       },
     })),
     ...activities.map<FeedEntry>((a) => ({

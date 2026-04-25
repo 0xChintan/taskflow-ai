@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { deleteComment, updateComment } from "@/app/lib/actions/comments";
+import { AttachmentList, type AttachmentData } from "./attachment-list";
 
 const EDIT_WINDOW_MS = 15 * 60 * 1000;
 
@@ -12,6 +13,7 @@ export type CommentItemData = {
   authorId: string;
   createdAt: Date;
   editedAt: Date | null;
+  attachments: AttachmentData[];
 };
 
 function renderBody(body: string): React.ReactNode {
@@ -133,7 +135,18 @@ export function CommentItem({
           </div>
         </form>
       ) : (
-        <div className="mt-1 whitespace-pre-wrap text-sm">{renderBody(comment.body)}</div>
+        <>
+          <div className="mt-1 whitespace-pre-wrap text-sm">{renderBody(comment.body)}</div>
+          {comment.attachments.length > 0 && (
+            <div className="mt-2">
+              <AttachmentList
+                attachments={comment.attachments}
+                currentUserId={currentUserId}
+                layout="grid"
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );

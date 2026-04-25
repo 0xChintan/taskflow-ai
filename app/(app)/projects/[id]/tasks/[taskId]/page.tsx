@@ -5,6 +5,7 @@ import { requireProjectAccess, verifySession } from "@/lib/dal";
 import { EditTaskForm } from "./edit-task-form";
 import { DeleteTaskButton } from "./delete-task-button";
 import { ActivityFeed } from "./_components/activity-feed";
+import { TaskAttachments } from "./_components/task-attachments";
 
 export default async function TaskDetailPage({
   params,
@@ -39,11 +40,25 @@ export default async function TaskDetailPage({
   });
   if (!task) notFound();
 
-  const members = await prisma.orgMember.findMany({
-    where: { orgId: project.orgId },
-    select: { user: { select: { id: true, name: true, email: true } } },
-    orderBy: { user: { name: "asc" } },
-  });
+  const [members, attachments] = await Promise.all([
+    prisma.orgMember.findMany({
+      where: { orgId: project.orgId },
+      select: { user: { select: { id: true, name: true, email: true } } },
+      orderBy: { user: { name: "asc" } },
+    }),
+    prisma.attachment.findMany({
+      where: { taskId: task.id },
+      select: {
+        id: true,
+        filename: true,
+        url: true,
+        mimeType: true,
+        size: true,
+        uploaderId: true,
+      },
+      orderBy: { createdAt: "asc" },
+    }),
+  ]);
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -76,6 +91,12 @@ export default async function TaskDetailPage({
           storyPoints: task.storyPoints == null ? "" : String(task.storyPoints),
           dueDate: task.dueDate ? task.dueDate.toISOString().slice(0, 10) : "",
         }}
+      />
+
+      <TaskAttachments
+        taskId={task.id}
+        attachments={attachments}
+        currentUserId={userId}
       />
 
       <ActivityFeed taskId={task.id} currentUserId={userId} />
