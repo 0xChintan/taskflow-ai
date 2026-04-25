@@ -1,19 +1,32 @@
+import Link from "next/link";
 import { logout } from "@/app/lib/actions/auth";
-import { getCurrentUser } from "@/lib/dal";
+import { getActiveOrg, getCurrentUser, getOrgsForUser } from "@/lib/dal";
+import { OrgSwitcher } from "./_components/org-switcher";
 
 export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getCurrentUser();
+  const [user, activeOrg, orgs] = await Promise.all([
+    getCurrentUser(),
+    getActiveOrg(),
+    getOrgsForUser(),
+  ]);
 
   return (
     <div className="flex flex-1 flex-col">
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-          <div className="flex items-center gap-6">
-            <span className="text-sm font-semibold">TaskFlow</span>
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard" className="text-sm font-semibold">
+              TaskFlow
+            </Link>
+            <span className="text-muted-foreground">/</span>
+            <OrgSwitcher
+              active={activeOrg ? { id: activeOrg.id, name: activeOrg.name } : null}
+              orgs={orgs.map((o) => ({ id: o.id, name: o.name }))}
+            />
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">{user?.email}</span>
