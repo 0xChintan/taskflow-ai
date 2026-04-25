@@ -16,6 +16,12 @@ export type TaskCardData = {
   sprint: { name: string; isActive: boolean } | null;
 };
 
+function shortSprintLabel(name: string): string {
+  const m = name.match(/sprint\s*(\d+)/i);
+  if (m) return `S${m[1]}`;
+  return name.split(/\s+/)[0].slice(0, 6);
+}
+
 export function TaskCard({
   task,
   projectId,
@@ -58,13 +64,13 @@ export function TaskCard({
           {task.sprint && (
             <span
               title={task.sprint.isActive ? `${task.sprint.name} (active sprint)` : task.sprint.name}
-              className={`truncate rounded-md px-1.5 py-0.5 text-[10px] font-medium ${
+              className={`shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-medium tabular-nums ${
                 task.sprint.isActive
                   ? "bg-primary/10 text-primary"
                   : "bg-subtle text-muted-foreground"
               }`}
             >
-              {task.sprint.name}
+              {shortSprintLabel(task.sprint.name)}
             </span>
           )}
         </div>

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { logout } from "@/app/lib/actions/auth";
 import { getActiveOrg, getCurrentUser, getOrgsForUser } from "@/lib/dal";
 import { verifySession } from "@/lib/dal";
 import { DEFAULT_ORG_COLOR, getContrastForeground } from "@/lib/color";
@@ -7,7 +6,7 @@ import { OrgSwitcher } from "./_components/org-switcher";
 import { NotificationBell } from "./_components/notification-bell";
 import { RealtimeRefresh } from "./_components/realtime-refresh";
 import { LogoMark } from "./_components/logo";
-import { Avatar } from "./_components/avatar";
+import { UserMenu } from "./_components/user-menu";
 
 export default async function AppLayout({
   children,
@@ -53,26 +52,7 @@ export default async function AppLayout({
           </div>
           <div className="flex items-center gap-2">
             <NotificationBell />
-            <div className="flex items-center gap-2 ml-1 pl-3 border-l border-border">
-              <Link
-                href="/settings/user"
-                title={`${user?.name} — account settings`}
-                className="rounded-full hover:ring-2 hover:ring-border-strong hover:ring-offset-2 hover:ring-offset-background transition"
-              >
-                {user && (
-                  <Avatar user={user} size={32} />
-                )}
-              </Link>
-              <form action={logout}>
-                <button
-                  type="submit"
-                  className="text-sm text-muted-foreground hover:text-foreground transition px-2"
-                  title={user?.email}
-                >
-                  Sign out
-                </button>
-              </form>
-            </div>
+            {user && <UserMenu user={user} />}
           </div>
         </div>
       </header>

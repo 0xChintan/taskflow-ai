@@ -93,10 +93,12 @@ export default async function DashboardPage() {
             >
               <div className="flex items-start gap-3">
                 <div
-                  className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white shadow-xs"
+                  className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg font-bold text-white shadow-xs tabular-nums ${
+                    p.key.length <= 2 ? "text-sm" : p.key.length === 3 ? "text-[11px]" : "text-[10px]"
+                  }`}
                   style={{ background: p.color }}
                 >
-                  {p.key.slice(0, 2)}
+                  {p.key.length <= 5 ? p.key : p.key.slice(0, 4)}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline gap-2">

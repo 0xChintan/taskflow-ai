@@ -85,10 +85,18 @@ export default async function ProjectPage({
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3 min-w-0">
           <div
-            className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-sm font-bold text-white shadow-xs"
+            className={`mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg font-bold text-white shadow-xs tabular-nums ${
+              project.key.length <= 2
+                ? "text-base"
+                : project.key.length === 3
+                  ? "text-sm"
+                  : project.key.length === 4
+                    ? "text-xs"
+                    : "text-[10px]"
+            }`}
             style={{ background: project.color }}
           >
-            {project.key.slice(0, 2)}
+            {project.key.length <= 5 ? project.key : project.key.slice(0, 4)}
           </div>
           <div className="min-w-0">
             <div className="flex items-baseline gap-2">
