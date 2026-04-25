@@ -159,6 +159,7 @@ Backend deep-dives live in [docs/](docs/):
 - **[Real-time](docs/realtime.md)** — SSE route, in-memory broker, channels, publish/subscribe, production scaling
 - **[Storage](docs/storage.md)** — attachment uploads, the local driver, swap to Cloudinary in one file
 - **[AI](docs/ai.md)** — Claude Opus 4.7 integration, structured outputs with Zod, prompt design
+- **[Roadmap](docs/roadmap.md)** — high-value features beyond v1.0, ranked by impact with implementation hints
 
 ---
 
